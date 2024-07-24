@@ -9,11 +9,7 @@ import {
   UserOutlined,
   WeiboCircleOutlined,
 } from '@ant-design/icons';
-import {
-  LoginForm,
-  ProFormCaptcha,
-  ProFormText,
-} from '@ant-design/pro-components';
+import { LoginForm, ProFormCaptcha, ProFormText } from '@ant-design/pro-components';
 import { FormattedMessage, history, SelectLang, useIntl, useModel, Helmet } from '@umijs/max';
 import { Col, Form, Input, message, Row, Tabs } from 'antd';
 import Settings from '../../../../config/defaultSettings';
@@ -80,8 +76,6 @@ const Lang = () => {
   );
 };
 
-
-
 const Login: React.FC = () => {
   const [type, setType] = useState<string>('account');
   const [codeUrl, setCodeUrl] = useState<string>('');
@@ -92,7 +86,7 @@ const Login: React.FC = () => {
 
   const fetchUserInfo = async () => {
     const userInfo = await initialState?.fetchUserInfo?.();
-    const menuList = await initialState?.fetchMenuList?.();
+    // const menuList = await initialState?.fetchMenuList?.();
 
     if (userInfo) {
       flushSync(() => {
@@ -101,7 +95,7 @@ const Login: React.FC = () => {
           currentUser: userInfo.user,
           permissions: userInfo.permissions,
           roles: userInfo.roles,
-          menuList: menuList,
+          // menuList: menuList,
         }));
       });
     }
@@ -135,14 +129,14 @@ const Login: React.FC = () => {
   };
 
   const getChaptcha = async () => {
-    const { data } = await getCaptchaImage()
-    setCodeUrl(`data:image/gif;base64,${data.img}`)
-    setUuid(data.uuid)
-  }
+    const { data } = await getCaptchaImage();
+    setCodeUrl(`data:image/gif;base64,${data.img}`);
+    setUuid(data.uuid);
+  };
 
   useEffect(() => {
-    getChaptcha()
-  }, [])
+    getChaptcha();
+  }, []);
 
   return (
     <div className={styles.container}>
@@ -172,7 +166,7 @@ const Login: React.FC = () => {
           subTitle={intl.formatMessage({ id: 'pages.layouts.userLayout.title' })}
           initialValues={{
             username: 'admin',
-            password: 'admin123'
+            password: 'admin123',
           }}
           actions={[
             <FormattedMessage
@@ -254,13 +248,18 @@ const Login: React.FC = () => {
                   },
                 ]}
               />
-              <Form.Item
-                name="code"
-                rules={[{ required: true, message: '请输入验证码' }]}
-              >
+              <Form.Item name="code" rules={[{ required: true, message: '请输入验证码' }]}>
                 <Row gutter={5}>
-                  <Col span={16}><Input placeholder='验证码' /></Col>
-                  <Col span={8}><img style={{ height: '40px', borderRadius: '8px', cursor: 'pointer' }} onClick={getChaptcha} src={codeUrl} /></Col>
+                  <Col span={16}>
+                    <Input placeholder="验证码" />
+                  </Col>
+                  <Col span={8}>
+                    <img
+                      style={{ height: '40px', borderRadius: '8px', cursor: 'pointer' }}
+                      onClick={getChaptcha}
+                      src={codeUrl}
+                    />
+                  </Col>
                 </Row>
               </Form.Item>
             </>

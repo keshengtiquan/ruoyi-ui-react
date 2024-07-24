@@ -1,25 +1,28 @@
 export const router2menu = (routes: API.Menu[]) => {
-  return routes.map((route) => {
-    const obj: API.Menu = {};
-    const { path, component, meta, children } = route;
-    if (path === '/' && component === 'Layout') {
-      if (children && children.length > 0) {
-        const singleMenu: API.Menu[] = router2menu(children);
-        return singleMenu[0];
+  return (
+    routes &&
+    routes.map((route) => {
+      const obj: API.Menu = {};
+      const { path, component, meta, children, hidden } = route;
+      if (path === '/' && component === 'Layout' && !hidden) {
+        if (children && children.length > 0) {
+          const singleMenu: API.Menu[] = router2menu(children);
+          return singleMenu[0];
+        }
+      } else if (!hidden) {
+        obj.path = path;
+        obj.name = meta?.title;
+        if (children && children.length > 0) {
+          obj.children = router2menu(children);
+        }
       }
-    } else {
-      obj.path = path;
-      obj.name = meta?.title;
-      if (children && children.length > 0) {
-        obj.children = router2menu(children);
-      }
-    }
 
-    return obj;
-  });
+      return obj;
+    })
+  );
 };
 
-export const flatRoutePath = (routes: API.Menu[], basePath = "") => {
+export const flatRoutePath = (routes: API.Menu[], basePath = '') => {
   let paths: string[] = [];
 
   routes.forEach((item) => {
@@ -33,7 +36,7 @@ export const flatRoutePath = (routes: API.Menu[], basePath = "") => {
     if (currentPath) {
       if (!currentPath.startsWith('/')) {
         currentPath = '/' + currentPath;
-    }
+      }
       paths.push(currentPath);
     }
 

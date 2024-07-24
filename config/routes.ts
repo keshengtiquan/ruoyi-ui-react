@@ -1,4 +1,5 @@
-﻿import access from "@/access";
+﻿import access from '@/access';
+import component from '@/locales/bn-BD/component';
 
 /**
  * @name umi 的路由配置
@@ -35,7 +36,7 @@ export default [
     name: '清单数据',
     icon: 'smile',
     component: './ProjectList',
-    access: 'normalRouteFilter'
+    access: 'normalRouteFilter',
   },
   {
     path: '/system',
@@ -47,8 +48,38 @@ export default [
         path: '/system/user',
         component: './System/User',
         access: 'normalRouteFilter',
-      }
-    ]
+      },
+      {
+        name: '角色管理',
+        path: '/system/role',
+        component: './System/Role',
+        access: 'normalRouteFilter',
+      },
+      {
+        name: '菜单管理',
+        path: '/system/menu',
+        component: './System/Menu',
+        access: 'normalRouteFilter',
+      },
+      {
+        name: '部门管理',
+        path: '/system/dept',
+        component: './System/Dept',
+        access: 'normalRouteFilter',
+      },
+      {
+        name: '岗位管理',
+        path: '/system/post',
+        component: './System/Post',
+        access: 'normalRouteFilter',
+      },
+      {
+        name: '字典管理',
+        path: '/system/dict',
+        component: './System/Dict',
+        access: 'normalRouteFilter',
+      },
+    ],
   },
   {
     path: '/',

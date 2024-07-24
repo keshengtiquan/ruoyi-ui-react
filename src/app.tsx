@@ -9,6 +9,7 @@ import { errorConfig } from './requestErrorConfig';
 import { currentUser as queryCurrentUser } from '@/services/ant-design-pro/api';
 import React from 'react';
 import { getRoutes } from './services/ant-design-pro/login';
+import { router2menu } from './utils/router';
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
 
@@ -37,14 +38,16 @@ export async function getInitialState(): Promise<{
     return undefined;
   };
   const fetchMenuList = async () => {
-    const {data: menuList} = await getRoutes()
-    return menuList
-  }
+    const { data: menuList } = await getRoutes();
+    return menuList;
+  };
   // 如果不是登录页面，执行
   const { location } = history;
   if (location.pathname !== loginPath) {
+    console.log(47);
+
     const userInfo = await fetchUserInfo();
-    const menuList = await fetchMenuList()
+    const menuList = await fetchMenuList();
     return {
       fetchUserInfo,
       permissions: userInfo?.permissions || [],
@@ -52,7 +55,7 @@ export async function getInitialState(): Promise<{
       currentUser: userInfo?.user,
       settings: defaultSettings as Partial<LayoutSettings>,
       menuList,
-      fetchMenuList
+      fetchMenuList,
     };
   }
   return {
@@ -70,7 +73,6 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
       src: initialState?.currentUser?.avatar,
       title: <AvatarName />,
       render: (_, avatarChildren) => {
-
         return <AvatarDropdown menu={true}>{avatarChildren}</AvatarDropdown>;
       },
     },
@@ -107,23 +109,24 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
     ],
     links: isDev
       ? [
-        <Link key="openapi" to="/umi/plugin/openapi" target="_blank">
-          <LinkOutlined />
-          <span>OpenAPI 文档</span>
-        </Link>,
-      ]
+          <Link key="openapi" to="/umi/plugin/openapi" target="_blank">
+            <LinkOutlined />
+            <span>OpenAPI 文档</span>
+          </Link>,
+        ]
       : [],
     menuHeaderRender: undefined,
-    // menu: {
-    //   params: {
-    //     userId: initialState?.currentUser?.userId,
-    //   },
-    //   request: async () => {
-    //     // initialState.currentUser 中包含了所有用户信息
-    //     const {data: menuData} = await getRoutes();
-    //     return [{name: '首页', path: '/welcome'},...router2menu(menuData)];
-    //   },
-    // },
+    menu: {
+      params: {
+        userId: initialState?.currentUser?.userId,
+      },
+      request: async () => {
+        return [
+          { name: '首页', path: '/welcome' },
+          ...router2menu(initialState?.menuList ? initialState?.menuList : []),
+        ];
+      },
+    },
     // 自定义 403 页面
     // unAccessible: <div>unAccessible</div>,
     // 增加一个 loading 的状态

@@ -5,7 +5,9 @@ import { flatRoutePath } from './utils/router';
  * */
 export default function access(initialState: { menuList?: API.Menu[] } | undefined) {
   const { menuList } = initialState ?? {};
-  let pathList: string[] = []
+  console.log(menuList);
+
+  let pathList: string[] = [];
   if (menuList && menuList.length > 0) {
     pathList = flatRoutePath(menuList);
   }
