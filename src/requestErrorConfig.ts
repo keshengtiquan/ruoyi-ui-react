@@ -2,6 +2,7 @@
 import type { RequestConfig } from '@umijs/max';
 import { message, notification } from 'antd';
 import { getLocalStorage } from './utils/tool';
+import { tansParams } from './utils/ruoyi';
 
 // 错误处理方案： 错误类型
 enum ErrorShowType {
@@ -92,6 +93,12 @@ export const errorConfig: RequestConfig = {
       const token = getLocalStorage('token')
       if(token) {
         config.headers!.Authorization = `Bearer ${token}`
+      }
+      if (config.method === 'get' && config.params) {
+        let url = config.url + '?' + tansParams(config.params);
+        url = url.slice(0, -1);
+        config.params = {};
+        config.url = url;
       }
 
       // 拦截请求配置，进行个性化处理。

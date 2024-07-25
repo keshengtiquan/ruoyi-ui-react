@@ -11,6 +11,13 @@ export interface ResultVo<T> {
   msg: string;
 }
 
+export interface Page {
+  /** 当前的页码 */
+  pageNum?: number;
+  /** 页面的容量 */
+  pageSize?: number;
+}
+
 export const baseUrl = '/api'
 export default {
   api,

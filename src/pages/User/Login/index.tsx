@@ -86,7 +86,7 @@ const Login: React.FC = () => {
 
   const fetchUserInfo = async () => {
     const userInfo = await initialState?.fetchUserInfo?.();
-    // const menuList = await initialState?.fetchMenuList?.();
+    const menuList = await initialState?.fetchMenuList?.();
 
     if (userInfo) {
       flushSync(() => {
@@ -95,7 +95,7 @@ const Login: React.FC = () => {
           currentUser: userInfo.user,
           permissions: userInfo.permissions,
           roles: userInfo.roles,
-          // menuList: menuList,
+          menuList: menuList,
         }));
       });
     }
