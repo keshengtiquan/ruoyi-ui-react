@@ -90,9 +90,9 @@ export const errorConfig: RequestConfig = {
   // 请求拦截器
   requestInterceptors: [
     (config: RequestOptions) => {
-      const token = getLocalStorage('token')
-      if(token) {
-        config.headers!.Authorization = `Bearer ${token}`
+      const token = getLocalStorage('token');
+      if (token) {
+        config.headers!.Authorization = `Bearer ${token}`;
       }
       if (config.method === 'get' && config.params) {
         let url = config.url + '?' + tansParams(config.params);
@@ -112,8 +112,15 @@ export const errorConfig: RequestConfig = {
       // 拦截响应数据，进行个性化处理
       const { data } = response as unknown as ResponseStructure;
 
-      if (data?.success === false) {
-        message.error('请求失败！');
+      if (data?.code !== 200) {
+        switch (data.code) {
+          case 500:
+            notification.open({
+              description: data.msg,
+              message: data.code,
+            });
+            break;
+        }
       }
       return response;
     },
