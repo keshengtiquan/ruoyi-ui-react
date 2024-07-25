@@ -96,7 +96,6 @@ const User: React.FC = () => {
       title: '操作',
       valueType: 'option',
       key: 'option',
-      render: (text, record, _, action) => [],
     },
   ];
   async function getTableDate(params: UserParams & {
