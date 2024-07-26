@@ -16,6 +16,8 @@ import { ActionType, PageContainer, ProColumns, ProTable } from '@ant-design/pro
 import { Button, Col, Input, message, Modal, Row, Space, Switch, Tooltip, Tree } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { debounce } from 'lodash';
+import { getDictByType } from '@/services/ant-design-pro/dict';
+import UserModal from './component/UserModal';
 
 const User: React.FC = () => {
   const [treeData, setTreeData] = useState<UserTree[]>([]);
@@ -72,11 +74,10 @@ const User: React.FC = () => {
   };
   const columns: ProColumns<UserResult>[] = [
     {
-      title: '用户编码',
-      dataIndex: 'userId',
-      ellipsis: true,
-      search: false,
-      align: 'center',
+      dataIndex: 'index',
+      valueType: 'indexBorder',
+      width: 48,
+      align: 'center'
     },
     {
       title: '用户名称',
@@ -102,8 +103,18 @@ const User: React.FC = () => {
     {
       title: '状态',
       dataIndex: 'status',
+      valueType: 'select',
+      request: async () => {
+        const { data } = await getDictByType('sys_normal_disable');
+        return data.map((item) => {
+          return {
+            label: item.dictLabel,
+            value: item.dictValue,
+          };
+        });
+      },
       render: (text, record) => (
-        <Switch checked={text === '0'} onChange={(checked) => onStatusChange(checked, record)} />
+        <Switch checked={record.status === '0'} onChange={(checked) => onStatusChange(checked, record)} />
       ),
     },
     {
@@ -117,6 +128,7 @@ const User: React.FC = () => {
       dataIndex: 'createTime',
       valueType: 'dateRange',
       hideInTable: true,
+      colSize: 1.3,
       search: {
         transform: (value) => {
           return {
@@ -168,8 +180,13 @@ const User: React.FC = () => {
       total: data.total,
     };
   }
-
   // -------------表格结束--------------
+
+  // ------------modal表单开始-----------
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const showModal = (show: boolean) => {
+    setIsModalOpen(show);
+  };
 
   useEffect(() => {
     getUserTree();
@@ -214,8 +231,8 @@ const User: React.FC = () => {
                 sm: 24,
                 md: 12,
                 lg: 8,
-                xl: 6,
-                xxl: 6,
+                xl: 5,
+                xxl: 5,
               },
             }}
             options={{
@@ -228,31 +245,32 @@ const User: React.FC = () => {
             dateFormatter="string"
             headerTitle="用户表格"
             toolBarRender={() => [
-              <Button key="button" icon={<PlusOutlined />} onClick={() => {}} type="primary">
+              <Button key="button" icon={<PlusOutlined />} onClick={() => { showModal(true)}} type="primary">
                 新增
               </Button>,
-              <Button key="button" icon={<FormOutlined />} onClick={() => {}} type="primary">
+              <Button key="button" icon={<FormOutlined />} onClick={() => { }} type="primary">
                 修改
               </Button>,
               <Button
                 key="button"
                 icon={<DeleteOutlined />}
-                onClick={() => {}}
+                onClick={() => { }}
                 type="primary"
                 danger
               >
                 删除
               </Button>,
-              <Button key="button" icon={<UploadOutlined />} onClick={() => {}}>
+              <Button key="button" icon={<UploadOutlined />} onClick={() => { }}>
                 导入
               </Button>,
-              <Button key="button" icon={<DownloadOutlined />} onClick={() => {}}>
+              <Button key="button" icon={<DownloadOutlined />} onClick={() => { }}>
                 导出
               </Button>,
             ]}
           />
         </Col>
       </Row>
+      <UserModal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen}/>
     </PageContainer>
   );
 };
