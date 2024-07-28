@@ -1,11 +1,16 @@
 import useTheme from '@/hooks/useTheme';
-import { changeStatus, getDeptTreeApi, getUserListApi } from '@/services/ant-design-pro/user';
+import {
+  changeStatus,
+  delUserApi,
+  getDeptTreeApi,
+  getUserListApi,
+  resetUserPasswordApi,
+} from '@/services/ant-design-pro/user';
 import { UserParams, UserResult, UserTree } from '@/services/ant-design-pro/user/user';
 import {
   DeleteOutlined,
   DownloadOutlined,
   EditOutlined,
-  FormOutlined,
   KeyOutlined,
   PlusOutlined,
   SafetyOutlined,
@@ -13,16 +18,39 @@ import {
   UploadOutlined,
 } from '@ant-design/icons';
 import { ActionType, PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
-import { Button, Col, Input, message, Modal, Row, Space, Switch, Tooltip, Tree } from 'antd';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Button,
+  Col,
+  Input,
+  message,
+  Modal,
+  Popconfirm,
+  Row,
+  Space,
+  Switch,
+  Table,
+  Tooltip,
+  Tree,
+} from 'antd';
+import React, { Key, useEffect, useMemo, useRef, useState } from 'react';
 import { debounce } from 'lodash';
 import { getDictByType } from '@/services/ant-design-pro/dict';
 import UserModal from './component/UserModal';
+import UploadFile, { UploadRefProps } from '@/components/upload/index';
+import { download } from '@/services/ant-design-pro/api';
+import { getConfigKeyApi } from '@/services/ant-design-pro/config';
+import { history } from '@umijs/max';
 
 const User: React.FC = () => {
   const [treeData, setTreeData] = useState<UserTree[]>([]);
   const [searchValue, setSearchValue] = useState('');
+  const [selectTreeId, setSelectTreeId] = useState<Key>();
   const token = useTheme();
+
+  // ------------modal表单开始-----------
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [updateUserId, setUpdateUserId] = useState<number | string | null>('');
+  // ------------modal表单开始-----------
 
   // ----------侧边部门树开始------------
   const getUserTree = async () => {
@@ -47,10 +75,14 @@ const User: React.FC = () => {
     () => filterTreeData(treeData, searchValue),
     [treeData, searchValue],
   );
+  const onTreeSelect = (selectedKeys: Key[]) => {
+    setSelectTreeId(selectedKeys[0]);
+  };
   // ----------侧边部门树结束------------
 
   // -------------表格开始--------------
   const actionRef = useRef<ActionType>();
+  const [selectRowIds, setSelectRowIds] = useState<Key[]>([]);
   const onStatusChange = (checked: boolean, record: UserResult) => {
     Modal.confirm({
       centered: true,
@@ -77,7 +109,7 @@ const User: React.FC = () => {
       dataIndex: 'index',
       valueType: 'indexBorder',
       width: 48,
-      align: 'center'
+      align: 'center',
     },
     {
       title: '用户名称',
@@ -113,8 +145,11 @@ const User: React.FC = () => {
           };
         });
       },
-      render: (text, record) => (
-        <Switch checked={record.status === '0'} onChange={(checked) => onStatusChange(checked, record)} />
+      render: (_, record) => (
+        <Switch
+          checked={record.status === '0'}
+          onChange={(checked) => onStatusChange(checked, record)}
+        />
       ),
     },
     {
@@ -151,29 +186,96 @@ const User: React.FC = () => {
         ) : (
           <Space style={{ color: token.colorPrimary }}>
             <Tooltip title="编辑">
-              <EditOutlined style={{ cursor: 'pointer' }} />
+              <EditOutlined
+                onClick={() => {
+                  setUpdateUserId(record.userId);
+                  setIsModalOpen(true);
+                }}
+                style={{ cursor: 'pointer' }}
+              />
             </Tooltip>
             <Tooltip title="删除">
-              <DeleteOutlined style={{ cursor: 'pointer' }} />
+              <Popconfirm
+                title="删除用户"
+                description={`确定删除【${record.nickName}】用户吗？`}
+                onConfirm={() => {
+                  delUserApi(record.userId).then((res) => {
+                    actionRef.current?.reload();
+                    message.success(res.msg);
+                  });
+                }}
+                okText="确定"
+                cancelText="取消"
+              >
+                <DeleteOutlined style={{ cursor: 'pointer' }} />
+              </Popconfirm>
             </Tooltip>
             <Tooltip title="重置密码">
-              <KeyOutlined style={{ cursor: 'pointer' }} />
+              <Popconfirm
+                title="重置用户密码"
+                description={`确定重置【${record.nickName}】用户的密码吗？`}
+                onConfirm={async () => {
+                  const { msg } = await getConfigKeyApi('sys.user.initPassword');
+                  resetUserPasswordApi({ userId: record.userId, password: msg }).then(() => {
+                    message.success('密码重置成功');
+                  });
+                }}
+                okText="确定"
+                cancelText="取消"
+              >
+                <KeyOutlined style={{ cursor: 'pointer' }} />
+              </Popconfirm>
             </Tooltip>
             <Tooltip title="分配角色">
-              <SafetyOutlined style={{ cursor: 'pointer' }} />
+              <SafetyOutlined
+                onClick={() => {
+                  console.log(record);
+
+                  history.push({
+                    pathname: `/system/user-auth/role/${record.userId}`,
+                  });
+                }}
+                style={{ cursor: 'pointer' }}
+              />
             </Tooltip>
           </Space>
         ),
     },
   ];
+
+  const onDelete = () => {
+    if (selectRowIds?.length === 0) {
+      message.error('请选择一条数据');
+      return;
+    }
+    Modal.confirm({
+      centered: true,
+      content: `确定删除所选的${selectRowIds.length}用户吗？`,
+      cancelText: '取消',
+      okText: '确定',
+      onCancel() {
+        message.info('取消操作');
+      },
+      onOk: async () => {
+        delUserApi(selectRowIds).then((res) => {
+          actionRef.current?.reload();
+          message.success(res.msg);
+        });
+      },
+    });
+  };
+
   async function getTableDate(
-    params: UserParams & {
+    params?: UserParams & {
       pageSize?: number;
       current?: number;
       keyword?: string;
     },
   ) {
-    const data = await getUserListApi({ ...params });
+    const queryParams = {
+      ...params,
+    };
+    const data = await getUserListApi({ ...queryParams });
     return {
       data: data.rows,
       success: true,
@@ -182,11 +284,9 @@ const User: React.FC = () => {
   }
   // -------------表格结束--------------
 
-  // ------------modal表单开始-----------
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const showModal = (show: boolean) => {
-    setIsModalOpen(show);
-  };
+  // -----------upload modal开始---------
+  const uploadRef = useRef<UploadRefProps>(null);
+  // -----------upload modal结束---------
 
   useEffect(() => {
     getUserTree();
@@ -214,6 +314,7 @@ const User: React.FC = () => {
                 defaultExpandAll={true}
                 fieldNames={{ title: 'label', key: 'id' }}
                 treeData={filteredTreeData}
+                onSelect={onTreeSelect}
               />
             )}
           </div>
@@ -223,7 +324,17 @@ const User: React.FC = () => {
             columns={columns}
             actionRef={actionRef}
             rowKey="userId"
+            params={{ deptId: selectTreeId }}
             request={(params) => getTableDate(params)}
+            rowSelection={{
+              selections: [Table.SELECTION_ALL, Table.SELECTION_INVERT],
+              preserveSelectedRowKeys: true,
+            }}
+            tableAlertRender={({ selectedRowKeys }) => {
+              console.log(selectedRowKeys);
+              setSelectRowIds(selectedRowKeys);
+              return false;
+            }}
             search={{
               labelWidth: 'auto',
               span: {
@@ -239,38 +350,70 @@ const User: React.FC = () => {
               fullScreen: true,
             }}
             pagination={{
-              pageSize: 10,
+              defaultPageSize: 10,
+              pageSizeOptions: [10, 20, 50, 100],
+              showSizeChanger: true,
+              showQuickJumper: true,
+              position: ['bottomCenter'],
             }}
             scroll={{ x: 1200 }}
-            dateFormatter="string"
+            // dateFormatter="string"
             headerTitle="用户表格"
             toolBarRender={() => [
-              <Button key="button" icon={<PlusOutlined />} onClick={() => { showModal(true)}} type="primary">
+              <Button
+                key="button"
+                icon={<PlusOutlined />}
+                onClick={() => {
+                  setIsModalOpen(true);
+                  setUpdateUserId(null);
+                }}
+                type="primary"
+              >
                 新增
-              </Button>,
-              <Button key="button" icon={<FormOutlined />} onClick={() => { }} type="primary">
-                修改
               </Button>,
               <Button
                 key="button"
                 icon={<DeleteOutlined />}
-                onClick={() => { }}
+                onClick={onDelete}
                 type="primary"
                 danger
               >
                 删除
               </Button>,
-              <Button key="button" icon={<UploadOutlined />} onClick={() => { }}>
+              <Button
+                key="button"
+                icon={<UploadOutlined />}
+                onClick={() => {
+                  uploadRef.current?.showModel();
+                }}
+              >
                 导入
               </Button>,
-              <Button key="button" icon={<DownloadOutlined />} onClick={() => { }}>
+              <Button
+                key="button"
+                icon={<DownloadOutlined />}
+                onClick={() => {
+                  download('/system/user/export', {}, `user_${new Date().getTime()}.xlsx`);
+                }}
+              >
                 导出
               </Button>,
             ]}
           />
         </Col>
       </Row>
-      <UserModal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen}/>
+      <UserModal
+        userId={updateUserId}
+        actionRef={actionRef}
+        isModalOpen={isModalOpen}
+        setIsModalOpen={setIsModalOpen}
+      />
+      <UploadFile
+        accept=".xls, .xlsx"
+        template="/system/user/importTemplate"
+        action="/system/user/importData"
+        ref={uploadRef}
+      />
     </PageContainer>
   );
 };

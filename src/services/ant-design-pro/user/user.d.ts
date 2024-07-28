@@ -20,6 +20,20 @@ export interface UserParams extends Page {
     endTime?: string;
   };
 }
+
+export interface AddUser {
+  deptId?: number | string;
+  userName?: string | undefined;
+  nickName?: string;
+  email?: string;
+  phonenumber?: string;
+  sex?: string;
+  status?: string;
+  remark?: string;
+  roleIds?: any;
+  postIds?: any;
+  password?: string | undefined;
+}
 export interface UserResult {
   createBy: string;
   createTime: string;
@@ -64,4 +78,47 @@ export interface Dept {
   status: any;
   delFlag: any;
   ancestors: any;
+}
+
+export interface UserModal {
+  roleIds?: number[];
+  postIds?: number[];
+  roles: Role[];
+  posts: Post[];
+  user?: UserResult;
+}
+
+export interface Post {
+  createBy: string;
+  createTime: string;
+  updateBy: string;
+  updateTime: any;
+  postId: number;
+  postCode: string;
+  postName: string;
+  postSort: number;
+  status: string;
+  remark: string;
+  flag: boolean;
+}
+
+export interface Role {
+  createBy: any;
+  createTime: string;
+  updateBy: any;
+  updateTime: any;
+  roleId: number;
+  roleName: string;
+  roleKey: string;
+  roleSort: number;
+  dataScope: string;
+  menuCheckStrictly: boolean;
+  deptCheckStrictly: boolean;
+  status: string;
+  delFlag: string;
+  remark?: string;
+  flag: boolean;
+  menuIds: any;
+  deptIds: any;
+  admin: boolean;
 }

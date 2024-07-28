@@ -5,7 +5,7 @@
 import * as api from './api';
 import * as login from './login';
 
-export interface ResultVo<T> {
+export interface ResultVo<T = null> {
   code: number;
   data: T;
   msg: string;
@@ -18,7 +18,9 @@ export interface Page {
   pageSize?: number;
 }
 
-export const baseUrl = '/api'
+export type ID = string | number | null | BigInt;
+
+export const baseUrl = '/api';
 export default {
   api,
   login,

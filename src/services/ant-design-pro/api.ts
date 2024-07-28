@@ -2,6 +2,8 @@
 /* eslint-disable */
 import { request } from '@umijs/max';
 import { baseUrl, ResultVo } from '.';
+import { blobValidate, tansParams } from '@/utils/ruoyi';
+import { saveAs } from 'file-saver';
 
 /** 获取当前的用户 GET /api/currentUser */
 export async function currentUser(options?: { [key: string]: any }) {
@@ -30,6 +32,34 @@ export async function login(body: API.LoginParams, options?: { [key: string]: an
     },
     data: body,
     ...(options || {}),
+  });
+}
+
+export async function download(
+  url: string,
+  params: Record<string, any>,
+  filename: string,
+  config?: any,
+) {
+  return request<BlobPart>(baseUrl + url, {
+    method: 'POST',
+    params,
+    transformRequest: [
+      () => {
+        return tansParams(params);
+      },
+    ],
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    responseType: 'blob',
+    ...config,
+  }).then(async (data) => {
+    console.log(data);
+
+    const isBlob = blobValidate(data);
+    if (isBlob) {
+      const blob = new Blob([data as any]);
+      saveAs(blob, filename);
+    }
   });
 }
 
@@ -65,10 +95,10 @@ export async function rule(
 export async function updateRule(options?: { [key: string]: any }) {
   return request<API.RuleListItem>('/api/rule', {
     method: 'POST',
-    data:{
+    data: {
       method: 'update',
       ...(options || {}),
-    }
+    },
   });
 }
 
@@ -76,10 +106,10 @@ export async function updateRule(options?: { [key: string]: any }) {
 export async function addRule(options?: { [key: string]: any }) {
   return request<API.RuleListItem>('/api/rule', {
     method: 'POST',
-    data:{
+    data: {
       method: 'post',
       ...(options || {}),
-    }
+    },
   });
 }
 
@@ -87,9 +117,9 @@ export async function addRule(options?: { [key: string]: any }) {
 export async function removeRule(options?: { [key: string]: any }) {
   return request<Record<string, any>>('/api/rule', {
     method: 'POST',
-    data:{
+    data: {
       method: 'delete',
       ...(options || {}),
-    }
+    },
   });
 }
