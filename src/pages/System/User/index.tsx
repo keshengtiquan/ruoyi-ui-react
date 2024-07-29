@@ -36,15 +36,13 @@ import React, { Key, useEffect, useMemo, useRef, useState } from 'react';
 import { debounce } from 'lodash';
 import { getDictByType } from '@/services/ant-design-pro/dict';
 import UserModal from './component/UserModal';
+import UserAuthModal, { UserAuthRefProps } from './component/UserAuthModal';
 import UploadFile, { UploadRefProps } from '@/components/upload/index';
 import { download } from '@/services/ant-design-pro/api';
 import { getConfigKeyApi } from '@/services/ant-design-pro/config';
-import { history } from '@umijs/max';
+import { ID } from '@/services/ant-design-pro';
 
 const User: React.FC = () => {
-  const [treeData, setTreeData] = useState<UserTree[]>([]);
-  const [searchValue, setSearchValue] = useState('');
-  const [selectTreeId, setSelectTreeId] = useState<Key>();
   const token = useTheme();
 
   // ------------modal表单开始-----------
@@ -52,7 +50,19 @@ const User: React.FC = () => {
   const [updateUserId, setUpdateUserId] = useState<number | string | null>('');
   // ------------modal表单开始-----------
 
+  // -------------UserAuth modal开始---------
+  const [selectUserAuth, setSelectUserAuth] = useState<ID>(null);
+  const userAuthRef = useRef<UserAuthRefProps>(null);
+  // -------------UserAuth modal开始---------
+
+  // -----------upload modal开始---------
+  const uploadRef = useRef<UploadRefProps>(null);
+  // -----------upload modal结束---------
+
   // ----------侧边部门树开始------------
+  const [treeData, setTreeData] = useState<UserTree[]>([]);
+  const [searchValue, setSearchValue] = useState('');
+  const [selectTreeId, setSelectTreeId] = useState<Key>();
   const getUserTree = async () => {
     const { data } = await getDeptTreeApi();
     setTreeData(data);
@@ -229,11 +239,8 @@ const User: React.FC = () => {
             <Tooltip title="分配角色">
               <SafetyOutlined
                 onClick={() => {
-                  console.log(record);
-
-                  history.push({
-                    pathname: `/system/user-auth/role/${record.userId}`,
-                  });
+                  setSelectUserAuth(record.userId);
+                  userAuthRef.current?.showModel();
                 }}
                 style={{ cursor: 'pointer' }}
               />
@@ -283,10 +290,6 @@ const User: React.FC = () => {
     };
   }
   // -------------表格结束--------------
-
-  // -----------upload modal开始---------
-  const uploadRef = useRef<UploadRefProps>(null);
-  // -----------upload modal结束---------
 
   useEffect(() => {
     getUserTree();
@@ -414,6 +417,7 @@ const User: React.FC = () => {
         action="/system/user/importData"
         ref={uploadRef}
       />
+      <UserAuthModal userId={selectUserAuth} ref={userAuthRef} />
     </PageContainer>
   );
 };

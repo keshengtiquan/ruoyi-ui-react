@@ -1,6 +1,6 @@
 import { request } from '@umijs/max';
 import { baseUrl, ID, ResultVo } from '..';
-import { AddUser, UserModal, UserParams, UserResult, UserTree } from './user';
+import { AddUser, AuthRole, UserModal, UserParams, UserResult, UserTree } from './user';
 import { parseStrEmpty } from '@/utils/ruoyi';
 
 const url = `${baseUrl}/system/user`;
@@ -92,5 +92,23 @@ export async function resetUserPasswordApi(data: { userId: ID; password: string 
   return request(url + '/resetPwd', {
     method: 'PUT',
     data: data,
+  });
+}
+
+/**
+ * 查询分配角色
+ * @param userId
+ * @returns
+ */
+export async function authRoleApi(userId: ID) {
+  return request<{ data: AuthRole }>(url + `/authRole/${userId}`, {
+    method: 'GET',
+  });
+}
+
+export async function updateAuthRoleApi(data: { userId: ID; roleIds: string }) {
+  return request<ResultVo<null>>(url + '/authRole', {
+    method: 'PUT',
+    params: data,
   });
 }

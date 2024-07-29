@@ -122,3 +122,8 @@ export interface Role {
   deptIds: any;
   admin: boolean;
 }
+
+export interface AuthRole {
+  roles: Role[];
+  user: UserResult;
+}

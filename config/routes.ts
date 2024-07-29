@@ -47,13 +47,6 @@ export default [
         access: 'normalRouteFilter',
       },
       {
-        name: '分配角色',
-        path: '/system/user-auth/role/:userId',
-        component: './System/User/UserAuth',
-        access: 'permissions',
-        permissions: ['system:role:edit'],
-      },
-      {
         name: '角色管理',
         path: '/system/role',
         component: './System/Role',

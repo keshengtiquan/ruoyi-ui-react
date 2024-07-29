@@ -75,7 +75,7 @@ const UserModal: React.FC<UserModalProps> = (props: UserModalProps) => {
   return (
     <>
       <ModalForm<UserFormType>
-        title="新建表单"
+        title={userId ? '编辑用户' : '新建用户'}
         open={isModalOpen}
         formRef={formRef}
         onFinish={async (values) => {
